@@ -25,5 +25,5 @@ func SayHello(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "Hello %s!", subject)
+	fmt.Fprintf(w, "Goodbye %s!", subject)
 }

@@ -21,5 +21,5 @@ func TestSayHello(t *testing.T) {
 		t.Errorf("expected error to be nil got %v", err)
 	}
 
-	assert.Equal(t, "Hello abc!", string(data))
+	assert.Equal(t, "Goodbye abc!", string(data))
 }
