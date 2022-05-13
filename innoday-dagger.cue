@@ -3,7 +3,6 @@ package main
 import (
 	"dagger.io/dagger"
 
-//	"universe.dagger.io/aws"
 	"universe.dagger.io/docker"
 	"universe.dagger.io/go"
 )
@@ -12,9 +11,9 @@ dagger.#Plan & {
 	client: {
 		filesystem: ".": read: contents: dagger.#FS
 		env: {
-//			AWS_ACCESS_KEY_ID:     dagger.#Secret
-//			AWS_SECRET_ACCESS_KEY: dagger.#Secret
-			DOCKER_PASSWORD:       dagger.#Secret
+			DOCKER_REPOSITORY: string | *"666831343496.dkr.ecr.eu-west-1.amazonaws.com/innoday-dagger"
+			DOCKER_USERNAME:   string | *"AWS"
+			DOCKER_PASSWORD:   dagger.#Secret
 		}
 	}
 
@@ -64,9 +63,9 @@ dagger.#Plan & {
 
 		push: docker.#Push & {
 			image: dockerize.output
-			dest:  "666831343496.dkr.ecr.eu-west-1.amazonaws.com/innoday-dagger"
+			dest:  client.env.DOCKER_REPOSITORY
 			auth: {
-				username: "AWS"
+				username: client.env.DOCKER_USERNAME
 				secret:   client.env.DOCKER_PASSWORD
 			}
 		}
