@@ -2,7 +2,10 @@ package main
 
 import (
 	"dagger.io/dagger"
+	"dagger.io/dagger/core"
 
+	"universe.dagger.io/aws"
+	"universe.dagger.io/aws/cli"
 	"universe.dagger.io/docker"
 	"universe.dagger.io/go"
 )
@@ -11,9 +14,9 @@ dagger.#Plan & {
 	client: {
 		filesystem: ".": read: contents: dagger.#FS
 		env: {
-			DOCKER_REPOSITORY: string | *"666831343496.dkr.ecr.eu-west-1.amazonaws.com/innoday-dagger"
-			DOCKER_USERNAME:   string | *"AWS"
-			DOCKER_PASSWORD:   dagger.#Secret
+			DOCKER_REPOSITORY:     string | *"666831343496.dkr.ecr.eu-west-1.amazonaws.com/innoday-dagger"
+			AWS_ACCESS_KEY_ID:     dagger.#Secret
+			AWS_SECRET_ACCESS_KEY: dagger.#Secret
 		}
 	}
 
@@ -42,31 +45,29 @@ dagger.#Plan & {
 			]
 		}
 
-		//  authenticate: aws.#Container & {
-		//   always:      true
-		//   credentials: aws.#Credentials & {
-		//    accessKeyId:     client.env.AWS_ACCESS_KEY_ID
-		//    secretAccessKey: client.env.AWS_SECRET_ACCESS_KEY
-		//   }
-		//
-		//   command: {
-		//    name: "sh"
-		//    flags: "-c": "aws --region eu-west-1 ecr get-login-password > /output.txt"
-		//   }
-		//
-		//   export: files: "/output.txt": _
-		//  }
-		//
-		//  load: core.#NewSecret & {
-		//            input: authenticate.container.filesystem
-		//        }
+		authenticate: cli.#Command & {
+			credentials: aws.#Credentials & {
+				accessKeyId:     client.env.AWS_ACCESS_KEY_ID
+				secretAccessKey: client.env.AWS_SECRET_ACCESS_KEY
+			}
+			options: region: "eu-west-1"
+			service: {
+				name:    "ecr"
+				command: "get-login-password"
+			}
+		}
+
+		load: core.#NewSecret & {
+			input: authenticate.export.rootfs
+			path:  "/output.txt"
+		}
 
 		push: docker.#Push & {
 			image: dockerize.output
 			dest:  client.env.DOCKER_REPOSITORY
 			auth: {
-				username: client.env.DOCKER_USERNAME
-				secret:   client.env.DOCKER_PASSWORD
+				username: "AWS"
+				secret:   load.output
 			}
 		}
 	}
