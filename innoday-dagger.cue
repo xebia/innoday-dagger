@@ -37,7 +37,7 @@ dagger.#Plan & {
 					dest:     "/app"
 				},
 				docker.#Set & {
-					config: cmd: ["/app/main"]
+					config: cmd: ["/app/innoday-dagger"]
 				},
 			]
 		}
