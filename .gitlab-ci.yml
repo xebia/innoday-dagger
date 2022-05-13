@@ -37,7 +37,6 @@
 
       dagger version
   script:
-    - dagger project update
     - |
       dagger \
           do \
