@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
 func main() {
@@ -12,5 +13,17 @@ func main() {
 }
 
 func SayHello(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello world")
+	query, err := url.ParseQuery(r.URL.RawQuery)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "invalid request")
+		return
+	}
+	subject := query.Get("subject")
+	if len(subject) == 0 {
+		subject = "world"
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "Hello %s!", subject)
 }
