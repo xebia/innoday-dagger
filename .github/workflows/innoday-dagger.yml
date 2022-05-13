@@ -1,4 +1,4 @@
-name: todoapp
+name: innoday-dagger
 
 on:
   push:
