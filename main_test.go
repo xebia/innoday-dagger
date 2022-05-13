@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUpperCaseHandler(t *testing.T) {
+func TestSayHello(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/?subject=abc", nil)
 	w := httptest.NewRecorder()
 	SayHello(w, req)
