@@ -8,7 +8,13 @@ import (
 )
 
 dagger.#Plan & {
-    client: filesystem: ".": read: contents: dagger.#FS
+    client: {
+    	filesystem: ".": read: contents: dagger.#FS
+    	env: {
+    		AWS_ACCESS_KEY_ID: dagger.#Secret
+    		AWS_SECRET_ACCESS_KEY: dagger.#Secret
+    	}
+    }
 
     actions: {
         test: go.#Test & {
@@ -18,7 +24,6 @@ dagger.#Plan & {
 
         build: go.#Build & {
             source: client.filesystem.".".read.contents
-            package: "main"
         }
 
         dockerize: docker.#Build & {
@@ -34,6 +39,30 @@ dagger.#Plan & {
 					config: cmd: ["/app/main"]
 				},
         	]
+        }
+
+        authenticate: aws.#Container & {
+			always:      true
+			credentials: aws.#Credentials & {
+				accessKeyId:     client.env.AWS_ACCESS_KEY_ID
+				secretAccessKey: client.env.AWS_SECRET_ACCESS_KEY
+			}
+
+			command: {
+				name: "sh"
+				flags: "-c": "aws --region eu-west-1 ecr get-login-password > /output.txt"
+			}
+
+			export: files: "/output.txt": _
+		}
+
+        push: docker.#Push & {
+        	image: dockerize.output
+        	dest: "666831343496.dkr.ecr.eu-west-1.amazonaws.com/innoday-dagger"
+        	auth: {
+        		username: "AWS"
+        		password: authenticate.export
+        	}
         }
     }
 }
